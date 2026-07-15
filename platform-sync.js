@@ -10,7 +10,7 @@
       {id:'n2',title:'Відкрито запис на карʼєрні консультації',body:'Бронювання 25-хвилинних сесій із консультантом доступне до 22 липня.',tag:'Карʼєра',date:'14.07.2026',published:true}
     ],
     requests:[
-      {id:'r1',studentId:'st-001',student:'Марія Коваленко',group:'МЕН-31',type:'Академічний транскрипт',detail:'Англійською · електронний з КЕП',date:'10.07.2026',status:'progress',owner:'О. Вербицька',due:'16.07.2026'},
+      {id:'r1',studentId:'st-001',student:'Марія Коваленко',group:'МЕН-31',type:'Академічний транскрипт',detail:'Англійською · електронний з КЕП',date:'10.07.2026',status:'progress',owner:'О. Вербицька',due:'16.07.2026',workflow:'transcript',transcriptStage:'validation',kep:'not_sent',file:null},
       {id:'r2',studentId:'st-014',student:'Богдан Мороз',group:'ТУР-11',type:'Довідка про навчання',detail:'Українською · паперова',date:'14.07.2026',status:'new',owner:'Не призначено',due:'17.07.2026'}
     ],
     tickets:[
@@ -33,6 +33,30 @@
       {id:'a2',course:'Управління проєктами',title:'Ретроспектива командного проєкту',due:'21 липня, 18:00',day:21,month:'лип',state:'open',weight:'10%'},
       {id:'a3',course:'Іноземна мова B2',title:'Business pitch · video',due:'24 липня, 20:00',day:24,month:'лип',state:'open',weight:'15%'}
     ],
+    electives:[
+      {id:'el1',name:'Аналітика даних у бізнесі',school:'Кафедра інтелектуальних систем',ects:5,seats:29,total:30,format:'Змішаний',schedule:'Вт · 15:30',summary:'Python, дашборди, A/B-тести й робота з управлінськими даними.',skills:['Python','Data storytelling','Експерименти']},
+      {id:'el2',name:'Поведінкова економіка для менеджерів',school:'Кафедра економіки',ects:4,seats:21,total:30,format:'Очно',schedule:'Ср · 13:55',summary:'Евристики, упередження та дизайн рішень у командах і продуктах.',skills:['Decision design','Research','Facilitation']},
+      {id:'el3',name:'Сталі фінанси та Європейський зелений курс',school:'Кафедра фінансів',ects:4,seats:12,total:30,format:'Онлайн',schedule:'Чт · 15:30',summary:'ESG-звітність, зелені облігації та інструменти сталого інвестування.',skills:['ESG','Reporting','Sustainable finance']},
+      {id:'el4',name:'Digital-маркетинг і бренд-менеджмент',school:'Кафедра маркетингу',ects:5,seats:33,total:35,format:'Змішаний',schedule:'Пт · 13:55',summary:'Контент-стратегія, performance-канали та вимірювання здоровʼя бренду.',skills:['Brand strategy','Analytics','Campaigns']},
+      {id:'el5',name:'Крос-культурні комунікації та переговори',school:'Кафедра соціології',ects:4,seats:26,total:30,format:'Очно',schedule:'Пн · 15:30',summary:'Переговорні стратегії та фасилітація міжнародних команд.',skills:['Negotiation','Culture','Teamwork']}
+    ],
+    electiveSelection:{studentId:'st-001',requiredEcts:9,picked:['el1'],status:'draft',submittedAt:null,reviewer:null},
+    learningCourses:[
+      {id:'lc1',title:'Стратегічний менеджмент',teacher:'Ольга Гринчук',progress:72,color:'blue',next:'Кейс · 18 липня',modules:[
+        {id:'m11',title:'01 · Стратегічний аналіз',completed:5,total:5,status:'done',lessons:[['Відео','Конкурентне середовище','18 хв','done'],['Матеріал','PESTEL і пʼять сил Портера','PDF · 12 стор.','done'],['Тест','Стратегічний аналіз','10 питань · 92%','done']]},
+        {id:'m12',title:'02 · Вибір стратегії',completed:3,total:5,status:'active',lessons:[['Відео','Корпоративні стратегії','24 хв','done'],['Практика','Матриця Ансоффа','Шаблон','done'],['Завдання','Кейс: вихід на новий ринок','до 18 липня','active']]},
+        {id:'m13',title:'03 · Реалізація і контроль',completed:0,total:4,status:'locked',lessons:[['Відео','Balanced Scorecard','21 хв','locked'],['Обговорення','Чому стратегії не працюють','Форум','locked']]}
+      ]},
+      {id:'lc2',title:'Управління проєктами',teacher:'Сергій Литвин',progress:84,color:'green',next:'Ретроспектива · 21 липня',modules:[
+        {id:'m21',title:'01 · Планування',completed:6,total:6,status:'done',lessons:[['Відео','Scope і WBS','28 хв','done'],['Тест','Планування проєкту','12 питань · 88%','done']]},
+        {id:'m22',title:'02 · Виконання',completed:4,total:5,status:'active',lessons:[['Матеріал','Agile ceremonies','PDF · 8 стор.','done'],['Завдання','Ретроспектива командного проєкту','до 21 липня','active']]}
+      ]},
+      {id:'lc3',title:'Фінансовий менеджмент',teacher:'Тетяна Радченко',progress:66,color:'amber',next:'Модуль 3 · 25 липня',modules:[
+        {id:'m31',title:'01 · Вартість капіталу',completed:4,total:4,status:'done',lessons:[['Відео','WACC','19 хв','done'],['Тест','Вартість капіталу','10 питань · 86%','done']]},
+        {id:'m32',title:'02 · Інвестиційні рішення',completed:2,total:5,status:'active',lessons:[['Матеріал','NPV та IRR','Конспект','done'],['Тест','Інвестиційні рішення','відкрито до 25 липня','active']]}
+      ]}
+    ],
+    learningActivity:{courseId:'lc1',lastLesson:'Матриця Ансоффа',minutesThisWeek:186,streak:6,quizAverage:89,submitted:7,totalAssignments:9},
     documents:[
       {id:'d1',name:'Довідка про навчання',format:'PDF · КЕП',issued:'02.07.2026',expires:'Безстроково'},
       {id:'d2',name:'Індивідуальний навчальний план',format:'PDF',issued:'01.02.2026',expires:'2025/26 н.р.'}
@@ -63,6 +87,14 @@
     }catch(e){return clone(initial)}
   }
   let state=read();
+  state.requests.forEach(request=>{
+    if(/транскрипт/i.test(request.type||'')&&!request.workflow){
+      request.workflow='transcript';
+      request.transcriptStage=request.status==='ready'?'ready':request.status==='progress'?'validation':'request';
+      request.kep=request.status==='ready'?'signed':'not_sent';
+      request.file=request.status==='ready'?'Transcript_Maria_Kovalenko_2026.pdf':null;
+    }
+  });
   function stamp(){return new Date().toLocaleString('uk-UA',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}).replace(',',' ·')}
   function emit(source){
     state.updatedAt=stamp();
