@@ -105,7 +105,52 @@
   function update(fn,source='local'){fn(state);emit(source);return clone(state)}
   function addAudit(action,area,actor='Оксана Вербицька'){state.audit.unshift({id:'l'+Date.now(),time:stamp().replace('2026 · ',''),actor,action,area});state.audit=state.audit.slice(0,30)}
   function reset(){state=clone(initial);emit('reset')}
+  function latin(value=''){
+    const map={'А':'A','Б':'B','В':'V','Г':'H','Ґ':'G','Д':'D','Е':'E','Є':'Ye','Ж':'Zh','З':'Z','И':'Y','І':'I','Ї':'Yi','Й':'Y','К':'K','Л':'L','М':'M','Н':'N','О':'O','П':'P','Р':'R','С':'S','Т':'T','У':'U','Ф':'F','Х':'Kh','Ц':'Ts','Ч':'Ch','Ш':'Sh','Щ':'Shch','Ь':'','Ю':'Yu','Я':'Ya','а':'a','б':'b','в':'v','г':'h','ґ':'g','д':'d','е':'e','є':'ie','ж':'zh','з':'z','и':'y','і':'i','ї':'i','й':'i','к':'k','л':'l','м':'m','н':'n','о':'o','п':'p','р':'r','с':'s','т':'t','у':'u','ф':'f','х':'kh','ц':'ts','ч':'ch','ш':'sh','щ':'shch','ь':'','ю':'iu','я':'ia'};
+    return String(value).split('').map(ch=>map[ch]??ch).join('').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^\x20-\x7E]/g,' ');
+  }
+  function pdfText(value){return latin(value).replace(/\\/g,'\\\\').replace(/\(/g,'\\(').replace(/\)/g,'\\)')}
+  function downloadUnsignedTranscript(profile={}){
+    const name=latin(profile.name||'Maria Kovalenko'),program=latin(profile.program||'Management'),group=latin(profile.group||'MEN-31');
+    const credits=profile.ects??152,gpa=profile.gpa??88.4,issued=new Date().toLocaleDateString('en-GB');
+    const rows=state.grades.slice(0,12).map((grade,index)=>({course:latin(grade.course).slice(0,34),assessment:latin(grade.kind).slice(0,25),score:String(grade.score),ects:String([5,4,5,4,3,5][index%6])}));
+    const pad=(value,size)=>String(value).slice(0,size).padEnd(size,' ');
+    const commands=[
+      'q 0.90 g BT /F2 43 Tf 0.707 0.707 -0.707 0.707 128 315 Tm (UNSIGNED COPY) Tj ET Q',
+      `BT /F2 16 Tf 48 790 Td (${pdfText('Academy of Labour, Social Relations and Tourism')}) Tj ET`,
+      `BT /F2 21 Tf 48 755 Td (${pdfText('ACADEMIC TRANSCRIPT')}) Tj ET`,
+      'BT /F1 10 Tf 48 733 Td (Automatically generated / without qualified electronic signature) Tj ET',
+      '0.15 0.28 0.95 rg 48 718 499 3 re f',
+      `BT /F2 11 Tf 48 690 Td (Student:) Tj ET BT /F1 11 Tf 126 690 Td (${pdfText(name)}) Tj ET`,
+      `BT /F2 11 Tf 48 671 Td (Programme:) Tj ET BT /F1 11 Tf 126 671 Td (${pdfText(program)}) Tj ET`,
+      `BT /F2 11 Tf 48 652 Td (Group:) Tj ET BT /F1 11 Tf 126 652 Td (${pdfText(group)}) Tj ET`,
+      `BT /F2 11 Tf 310 690 Td (Credits earned:) Tj ET BT /F1 11 Tf 424 690 Td (${pdfText(credits)}) Tj ET`,
+      `BT /F2 11 Tf 310 671 Td (Average grade:) Tj ET BT /F1 11 Tf 424 671 Td (${pdfText(gpa)}) Tj ET`,
+      `BT /F2 11 Tf 310 652 Td (Generated:) Tj ET BT /F1 11 Tf 424 652 Td (${pdfText(issued)}) Tj ET`,
+      '0.88 g 48 624 499 22 re f',
+      '0 g',
+      `BT /F3 8 Tf 53 632 Td (${pdfText(pad('COURSE',35)+pad('ASSESSMENT',26)+pad('GRADE',8)+'ECTS')}) Tj ET`
+    ];
+    rows.forEach((row,index)=>{const y=610-index*23;commands.push(`BT /F3 8 Tf 53 ${y} Td (${pdfText(pad(row.course,35)+pad(row.assessment,26)+pad(row.score,8)+row.ects)}) Tj ET`);commands.push(`0.91 G 48 ${y-7} m 547 ${y-7} l S`)});
+    commands.push('0.15 0.28 0.95 rg 48 260 499 2 re f');
+    commands.push('0 g');
+    commands.push('BT /F2 11 Tf 48 238 Td (DOCUMENT STATUS: UNSIGNED) Tj ET');
+    commands.push('BT /F1 9 Tf 48 220 Td (This automatically generated copy is provided for information only.) Tj ET');
+    commands.push('BT /F1 9 Tf 48 205 Td (For official use, request the version bearing a qualified electronic signature.) Tj ET');
+    commands.push('BT /F3 8 Tf 48 70 Td (APSVT Flow / verification unavailable / unsigned electronic copy) Tj ET');
+    const stream=commands.join('\n'),objects=[
+      '<< /Type /Catalog /Pages 2 0 R >>',
+      '<< /Type /Pages /Kids [3 0 R] /Count 1 >>',
+      '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 4 0 R /F2 5 0 R /F3 6 0 R >> >> /Contents 7 0 R >>',
+      '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>',
+      '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>',
+      '<< /Type /Font /Subtype /Type1 /BaseFont /Courier >>',
+      `<< /Length ${stream.length} >>\nstream\n${stream}\nendstream`
+    ];
+    let pdf='%PDF-1.4\n',offsets=[0];objects.forEach((object,index)=>{offsets[index+1]=pdf.length;pdf+=`${index+1} 0 obj\n${object}\nendobj\n`});const xref=pdf.length;pdf+=`xref\n0 ${objects.length+1}\n0000000000 65535 f \n`;offsets.slice(1).forEach(offset=>pdf+=`${String(offset).padStart(10,'0')} 00000 n \n`);pdf+=`trailer\n<< /Size ${objects.length+1} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF`;
+    const blob=new Blob([pdf],{type:'application/pdf'}),url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download=`unsigned-transcript-${name.toLowerCase().replace(/[^a-z0-9]+/g,'-')}.pdf`;document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),1200);return link.download;
+  }
   if(channel) channel.onmessage=e=>{if(e.data&&e.data.type==='state'){state=e.data.state;window.dispatchEvent(new CustomEvent('apsvt:change',{detail:{state:clone(state),source:e.data.source}}))}};
   window.addEventListener('storage',e=>{if(e.key===KEY&&e.newValue){try{state=JSON.parse(e.newValue);window.dispatchEvent(new CustomEvent('apsvt:change',{detail:{state:clone(state),source:'storage'}}))}catch(err){}}});
-  window.APSVT={get:()=>clone(state),update,addAudit,reset,stamp,mode:'shared demo state'};
+  window.APSVT={get:()=>clone(state),update,addAudit,reset,stamp,downloadUnsignedTranscript,mode:'shared demo state'};
 })();
