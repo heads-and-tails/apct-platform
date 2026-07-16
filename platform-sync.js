@@ -5,6 +5,14 @@
     version:2,
     updatedAt:'15.07.2026, 10:24',
     schedule:{version:'v18',publishedAt:'15.07.2026, 09:40',note:'Аудиторію для «Управління проєктами» у четвер змінено на 405.'},
+    admissions:{
+      cycle:{name:'Вступ 2026',deadline:'31.07.2026',year:2026,edeboLastSync:'16.07.2026 · 09:15'},
+      applicants:[
+        {id:'app-001',name:'Олена Савчук',initials:'ОС',email:'o.savchuk@gmail.com',phone:'+38 (067) 555-19-26',program:'Менеджмент',degree:'Бакалавр',form:'Денна',funding:'Контракт',priority:2,status:'in_review',stage:'documents',submittedAt:'12.07.2026',edebo:{status:'synced',id:'EDBO-2026-041582',updatedAt:'16.07.2026 · 09:15'},documents:[{id:'passport',title:'Паспорт / ID-картка',status:'verified',file:'id-card.pdf'},{id:'education',title:'Документ про освіту',status:'verified',file:'certificate.pdf'},{id:'photo',title:'Цифрове фото 3×4',status:'verified',file:'photo.jpg'},{id:'tax',title:'РНОКПП',status:'review',file:'tax-number.pdf'}],interview:{status:'scheduled',date:'22.07.2026',time:'11:20',format:'Онлайн',room:'Meet · кімната A-14',score:null,note:'Мотиваційна співбесіда · 20 хв'},contract:{number:'АП-2026-0184',status:'ready',signedAt:null,method:null},payment:{amount:28000,status:'pending',due:'05.08.2026',paidAt:null,receipt:null},onboarding:{studentId:null,group:null,academyEmail:null,accountStatus:'waiting',cardStatus:'waiting'}},
+        {id:'app-002',name:'Максим Бойко',initials:'МБ',email:'m.boiko@gmail.com',phone:'+38 (093) 442-10-08',program:'Фінанси, банківська справа та страхування',degree:'Бакалавр',form:'Денна',funding:'Бюджет',priority:1,status:'offer',stage:'contract',submittedAt:'10.07.2026',edebo:{status:'synced',id:'EDBO-2026-039117',updatedAt:'16.07.2026 · 09:15'},documents:[{id:'passport',title:'Паспорт / ID-картка',status:'verified',file:'id.pdf'},{id:'education',title:'Документ про освіту',status:'verified',file:'certificate.pdf'}],interview:{status:'passed',date:'18.07.2026',time:'10:00',format:'Очно',room:'Аудиторія 214',score:178,note:'Фахове випробування'},contract:{number:'АП-2026-0162',status:'ready',signedAt:null,method:null},payment:{amount:0,status:'not_required',due:'—',paidAt:null,receipt:null},onboarding:{studentId:null,group:null,academyEmail:null,accountStatus:'waiting',cardStatus:'waiting'}},
+        {id:'app-003',name:'Ірина Петренко',initials:'ІП',email:'i.petrenko@gmail.com',phone:'+38 (050) 811-24-19',program:'Право',degree:'Магістр',form:'Заочна',funding:'Контракт',priority:1,status:'documents',stage:'documents',submittedAt:'15.07.2026',edebo:{status:'pending',id:null,updatedAt:null},documents:[{id:'passport',title:'Паспорт / ID-картка',status:'review',file:'passport.pdf'},{id:'education',title:'Диплом бакалавра',status:'missing',file:null}],interview:{status:'not_scheduled',date:null,time:null,format:null,room:null,score:null,note:'ЄФВВ + мотиваційний лист'},contract:{number:null,status:'waiting',signedAt:null,method:null},payment:{amount:24000,status:'waiting',due:'—',paidAt:null,receipt:null},onboarding:{studentId:null,group:null,academyEmail:null,accountStatus:'waiting',cardStatus:'waiting'}}
+      ]
+    },
     announcements:[
       {id:'n1',title:'Літній графік роботи деканату',body:'У серпні прийом документів відбувається у вівторок і четвер з 10:00 до 15:00.',tag:'Важливо',date:'15.07.2026',published:true},
       {id:'n2',title:'Відкрито запис на карʼєрні консультації',body:'Бронювання 25-хвилинних сесій із консультантом доступне до 22 липня.',tag:'Карʼєра',date:'14.07.2026',published:true}
@@ -102,7 +110,19 @@
     if(channel)channel.postMessage({type:'state',state,source});
     window.dispatchEvent(new CustomEvent('apsvt:change',{detail:{state:clone(state),source}}));
   }
-  function update(fn,source='local'){fn(state);emit(source);return clone(state)}
+  function evaluateApplicant(applicant){
+    const documentsReady=applicant.documents.length>0&&applicant.documents.every(document=>document.status==='verified');
+    const interviewReady=applicant.interview.status==='passed';
+    const contractReady=applicant.contract.status==='signed';
+    const paymentReady=['paid','not_required'].includes(applicant.payment.status);
+    const edeboReady=applicant.edebo.status==='synced';
+    if(documentsReady&&interviewReady&&contractReady&&paymentReady&&edeboReady&&!applicant.onboarding.studentId){
+      const number=1285+state.admissions.applicants.filter(item=>item.onboarding.studentId).length;
+      applicant.status='enrolled';applicant.stage='onboarding';applicant.onboarding.studentId=`ST-${2026}-${String(number).padStart(4,'0')}`;applicant.onboarding.group=applicant.program.includes('Фінанси')?'ФІН-11':applicant.program.includes('Право')?'ПРА-51':'МЕН-11';applicant.onboarding.academyEmail=`${latin(applicant.name).toLowerCase().replace(/[^a-z]+/g,'.').replace(/^\.|\.$/g,'')}@st.socosvita.kiev.ua`;applicant.onboarding.accountStatus='ready';applicant.onboarding.cardStatus='creating';
+      addAudit(`Автоматично зараховано ${applicant.name} та створено студентський профіль`,'Вступ','АПСВТ Flow');
+    }
+  }
+  function update(fn,source='local'){fn(state);state.admissions?.applicants?.forEach(evaluateApplicant);emit(source);return clone(state)}
   function addAudit(action,area,actor='Оксана Вербицька'){state.audit.unshift({id:'l'+Date.now(),time:stamp().replace('2026 · ',''),actor,action,area});state.audit=state.audit.slice(0,30)}
   function reset(){state=clone(initial);emit('reset')}
   function latin(value=''){
